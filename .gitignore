@@ -1,0 +1,22 @@
+# Relacionado a Java
+target/**
+*.jar
+*.war
+*.ear
+*.class
+
+# Relacionado ao Eclipse
+*.pydevproject
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
