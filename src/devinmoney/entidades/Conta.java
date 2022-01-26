@@ -8,6 +8,20 @@ public abstract class Conta {
 	protected Integer conta;
 	protected Agencia agencia;
 	protected Double saldo;
+	
+	protected Integer senha;
+	protected String extrato;
+
+	public Conta(String nome, Integer cpf, Double rendaMensal, Integer conta, Agencia agencia, Double saldo,
+			Integer senha) {
+		this.nome = nome;
+		this.cpf = cpf;
+		this.rendaMensal = rendaMensal;
+		this.conta = conta;
+		this.agencia = agencia;
+		this.saldo = saldo;
+		this.senha = senha;
+	}
 
 	public String getNome() {
 		return nome;
@@ -49,6 +63,14 @@ public abstract class Conta {
 		this.agencia = agencia;
 	}
 
+	public Integer getSenha() {
+		return senha;
+	}
+
+	public void setSenha(Integer senha) {
+		this.senha = senha;
+	}
+
 	public Double getSaldo() {
 		return saldo;
 	}
@@ -56,5 +78,17 @@ public abstract class Conta {
 	public void setSaldo(Double saldo) {
 		this.saldo = saldo;
 	}
+	
+	public String getExtrato() {
+		return extrato;
+	}
 
+	public abstract void saque();
+
+	public abstract void deposito();
+	
+	public abstract void setExtrato();
+	
+	public abstract void transferir(Conta contaDestino, Double valor);
+	
 }
