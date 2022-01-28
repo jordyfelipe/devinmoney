@@ -2,8 +2,6 @@ package devinmoney.entidades;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,8 +18,7 @@ public abstract class Conta {
 
 	protected Integer senha;
 	protected String extrato = "Extrato: Data | Hora | Descricao | Valor:\n";
-	protected List<Transacao> transacoes = new ArrayList<Transacao>();
-
+	
 	public Conta(String nome, String cpf, Double rendaMensal, Integer conta, Agencia agencia, Double saldo,
 			Integer senha) throws EntradaIncorretaException {
 		this.nome = nome;
@@ -45,7 +42,7 @@ public abstract class Conta {
 		return cpf;
 	}
 
-	public String validarCpf(String cpf) throws EntradaIncorretaException {
+	private String validarCpf(String cpf) throws EntradaIncorretaException {
 		Pattern pattern = Pattern.compile("[0-9]{3}\\.?[0-9]{3}\\.?[0-9]{3}-?[0-9]{2}");
 		Matcher matcher = pattern.matcher(cpf);
 		if (matcher.matches()) {
@@ -103,11 +100,7 @@ public abstract class Conta {
 		return extrato;
 	}
 
-	public List<Transacao> getTransacoes() {
-		return transacoes;
-	}
-
-	public void deposito(Double valor) {
+	public void depositar(Double valor) {
 		this.saldo += valor;
 		this.setExtrato(DescricaoExtrato.DEPOSITO, valor);
 	}
@@ -117,15 +110,33 @@ public abstract class Conta {
 		this.setRendaMensal(renda);
 		this.setSenha(senha);
 	}
-
+	
+	/**
+	 * Deve ser utilizado para incluir uma linha no extrato de operações que não possuam conta destino de titularidade diferente.
+	 * @param descricao
+	 * @param valor
+	 */
 	public void setExtrato(DescricaoExtrato descricao, Double valor) {
 		LocalDateTime agora = LocalDateTime.now();
 		DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 		String agoraFormatado = agora.format(formatador);
 		this.extrato += agoraFormatado + " " + descricao + " R$" + valor + "\n";
 	}
+	
+	/**
+	 * Deve ser utilizado para incluir uma linha no extrato de operações que possuam conta de origem ou destino.
+	 * @param descricao
+	 * @param valor
+	 * @param titularConta destino ou origem
+	 */
+	public void setExtrato(DescricaoExtrato descricao, Double valor, String titularConta) {
+		LocalDateTime agora = LocalDateTime.now();
+		DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+		String agoraFormatado = agora.format(formatador);
+		this.extrato += agoraFormatado + " " + descricao + " R$" + valor +" "+titularConta+"\n";
+	}
 
-	public abstract void saque();
+	public abstract void sacar(Double valor);
 
 	public abstract void transferir(Conta contaDestino, Double valor);
 
