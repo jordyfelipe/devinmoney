@@ -3,8 +3,7 @@ package devinmoney.entidades;
 public enum DescricaoExtrato {
 
 	DEPOSITO("Depósito recebido"), SAQUE("Saque efetuado"), TRANSFERENCIA_EFETUADA("Transferência efetuada"),
-	TRANSFERENCIA_RECEBIDA("Transferência recebida"), RESGATE("Resgate"),
-	APLICACAO("Aplicação");
+	TRANSFERENCIA_RECEBIDA("Transferência recebida"), RESGATE("Resgate"), APLICACAO("Aplicação");
 
 	private String tipo;
 
@@ -14,6 +13,10 @@ public enum DescricaoExtrato {
 
 	public String getTipo() {
 		return tipo;
+	}
+
+	public void setTipo(String tipo) {
+		this.tipo = tipo;
 	}
 
 }
