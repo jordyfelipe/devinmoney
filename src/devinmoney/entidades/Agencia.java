@@ -2,12 +2,21 @@ package devinmoney.entidades;
 
 public enum Agencia {
 
-	FLORIANOPOLIS(001), SAO_JOSE(002);
+	FLORIANOPOLIS(001, "Florianópolis"), SAO_JOSE(002, "São José");
 
 	private Integer codigo;
+	private String descricao;
 
-	Agencia(Integer codigo) {
+	Agencia(Integer codigo, String string) {
 		this.codigo = codigo;
+	}
+
+	public String getDescricao() {
+		return descricao;
+	}
+
+	public void setDescricao(String descricao) {
+		this.descricao = descricao;
 	}
 
 	public Integer getCodigo() {

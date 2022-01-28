@@ -23,7 +23,7 @@ public class ContaCorrente extends Conta {
 
 	@Override
 	public void sacar(Double valor) {
-		if (this.saldo > valor) {
+		if (this.saldo >= valor) {
 			this.saldo -= valor;
 			this.setExtrato(DescricaoExtrato.SAQUE, valor);
 		} else {
@@ -41,7 +41,7 @@ public class ContaCorrente extends Conta {
 
 	@Override
 	public void transferir(Conta contaDestino, Double valor) {
-		if (this.saldo > valor) {
+		if (this.saldo >= valor) {
 			this.saldo -= valor;
 			contaDestino.setSaldo(contaDestino.getSaldo() + valor);
 			this.setExtrato(DescricaoExtrato.TRANSFERENCIA_EFETUADA, valor, contaDestino.nome);

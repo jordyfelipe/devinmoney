@@ -116,11 +116,11 @@ public abstract class Conta {
 	 * @param descricao
 	 * @param valor
 	 */
-	public void setExtrato(DescricaoExtrato descricao, Double valor) {
+	public void setExtrato(DescricaoExtrato descricaoExtrato, Double valor) {
 		LocalDateTime agora = LocalDateTime.now();
 		DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 		String agoraFormatado = agora.format(formatador);
-		this.extrato += agoraFormatado + " " + descricao + " R$" + valor + "\n";
+		this.extrato += agoraFormatado + " " + descricaoExtrato.getTipo() + " R$" + valor + "\n";
 	}
 	
 	/**
@@ -129,11 +129,11 @@ public abstract class Conta {
 	 * @param valor
 	 * @param titularConta destino ou origem
 	 */
-	public void setExtrato(DescricaoExtrato descricao, Double valor, String titularConta) {
+	public void setExtrato(DescricaoExtrato descricaoExtrato, Double valor, String titularConta) {
 		LocalDateTime agora = LocalDateTime.now();
 		DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 		String agoraFormatado = agora.format(formatador);
-		this.extrato += agoraFormatado + " " + descricao + " R$" + valor +" "+titularConta+"\n";
+		this.extrato += agoraFormatado + " " + descricaoExtrato.getTipo() + " R$" + valor +" "+titularConta+"\n";
 	}
 
 	public abstract void sacar(Double valor);
