@@ -29,25 +29,9 @@ public class ContaPoupanca extends Conta {
 	}
 
 	@Override
-	public void sacar(Double valor) {
-		if (this.saldo >= valor) {
-			this.saldo -= valor;
-			this.setExtrato(DescricaoExtrato.SAQUE, valor);
-		} else {
-			System.out.println("Não foi possível realizar a operação " + this.nome + ", saldo insuficiente.");
-		}
-	}
-
-	@Override
-	public void transferir(Conta contaDestino, Double valor) {
-		if (this.saldo >= valor) {
-			this.saldo -= valor;
-			contaDestino.setSaldo(contaDestino.getSaldo() + valor);
-			this.setExtrato(DescricaoExtrato.TRANSFERENCIA_EFETUADA, valor, contaDestino.nome);
-			contaDestino.setExtrato(DescricaoExtrato.TRANSFERENCIA_RECEBIDA, valor, this.nome);
-		} else {
-			System.out.println("Não foi possível realizar a operação " + this.nome + ", saldo insuficiente.");
-		}
+	public String toString() {
+		return "Conta Poupanca: Nome: " + nome + ", CPF: " + cpf + ", Renda Mensal: " + rendaMensal + ", Conta: "
+				+ conta + ", Agência: " + agencia.getDescricao() + ", Saldo: " + saldo;
 	}
 
 }

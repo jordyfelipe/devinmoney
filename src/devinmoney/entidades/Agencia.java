@@ -7,8 +7,9 @@ public enum Agencia {
 	private Integer codigo;
 	private String descricao;
 
-	Agencia(Integer codigo, String string) {
+	Agencia(Integer codigo, String descricao) {
 		this.codigo = codigo;
+		this.descricao = descricao;
 	}
 
 	public String getDescricao() {

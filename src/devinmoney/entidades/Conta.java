@@ -17,8 +17,8 @@ public abstract class Conta {
 	protected Double saldo;
 
 	protected Integer senha;
-	protected String extrato = "Extrato: Data | Hora | Descricao | Valor:\n";
-	
+	protected String extrato = "Abaixo extrato:\n";
+
 	public Conta(String nome, String cpf, Double rendaMensal, Integer conta, Agencia agencia, Double saldo,
 			Integer senha) throws EntradaIncorretaException {
 		this.nome = nome;
@@ -53,7 +53,7 @@ public abstract class Conta {
 	}
 
 	public String setCpf(String cpf) throws EntradaIncorretaException {
-			return validarCpf(cpf);	
+		return validarCpf(cpf);
 	}
 
 	public Double getRendaMensal() {
@@ -97,22 +97,26 @@ public abstract class Conta {
 	}
 
 	public String getExtrato() {
-		return extrato;
+		return extrato + "\nSaldo atual: " + saldo;
 	}
 
 	public void depositar(Double valor) {
 		this.saldo += valor;
 		this.setExtrato(DescricaoExtrato.DEPOSITO, valor);
+		System.out.println("Depósito efetuado com sucesso!");
 	}
 
 	public void alterarDadosCadastrais(String nome, Double renda, Integer senha) {
 		this.setNome(nome);
 		this.setRendaMensal(renda);
 		this.setSenha(senha);
+		System.out.println("Dados cadastrais alterados com sucesso!");
 	}
-	
+
 	/**
-	 * Deve ser utilizado para incluir uma linha no extrato de operações que não possuam conta destino de titularidade diferente.
+	 * Deve ser utilizado para incluir uma linha no extrato de operações que não
+	 * possuam conta destino de titularidade diferente.
+	 * 
 	 * @param descricao
 	 * @param valor
 	 */
@@ -122,9 +126,11 @@ public abstract class Conta {
 		String agoraFormatado = agora.format(formatador);
 		this.extrato += agoraFormatado + " " + descricaoExtrato.getTipo() + " R$" + valor + "\n";
 	}
-	
+
 	/**
-	 * Deve ser utilizado para incluir uma linha no extrato de operações que possuam conta de origem ou destino.
+	 * Deve ser utilizado para incluir uma linha no extrato de operações que possuam
+	 * conta de origem ou destino.
+	 * 
 	 * @param descricao
 	 * @param valor
 	 * @param titularConta destino ou origem
@@ -133,17 +139,34 @@ public abstract class Conta {
 		LocalDateTime agora = LocalDateTime.now();
 		DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 		String agoraFormatado = agora.format(formatador);
-		this.extrato += agoraFormatado + " " + descricaoExtrato.getTipo() + " R$" + valor +" "+titularConta+"\n";
+		this.extrato += agoraFormatado + " " + descricaoExtrato.getTipo() + " R$" + valor + " " + titularConta + "\n";
 	}
 
-	public abstract void sacar(Double valor);
+	public void sacar(Double valor) {
+		if (this.saldo >= valor) {
+			this.saldo -= valor;
+			this.setExtrato(DescricaoExtrato.SAQUE, valor);
+			System.out.println("Saque efetuado com sucesso!");
+		} else {
+			System.out.println("Não foi possível realizar a operação, saldo insuficiente.");
+		}
+	}
 
-	public abstract void transferir(Conta contaDestino, Double valor);
-
-	@Override
-	public String toString() {
-		return "Cliente: " + nome + ", CPF: " + cpf + ", Renda mensal: " + rendaMensal + ", Número conta: " + conta
-				+ ", Agência: " + agencia + ", Saldo atual: " + saldo;
+	public void transferir(Conta contaDestino, Double valor) {
+		if (contaDestino.conta != this.conta) {
+			if (this.saldo >= valor) {
+				this.saldo -= valor;
+				contaDestino.setSaldo(contaDestino.getSaldo() + valor);
+				this.setExtrato(DescricaoExtrato.TRANSFERENCIA_EFETUADA, valor, contaDestino.nome);
+				contaDestino.setExtrato(DescricaoExtrato.TRANSFERENCIA_RECEBIDA, valor, this.nome);
+				System.out.println("Depósito efetuado com sucesso!");
+			} else {
+				System.out.println("Não foi possível realizar a operação, saldo insuficiente.");
+			}
+		} else {
+			System.out.println(
+					"Não foi possível realizar a transação, número de conta destino precisa ser diferente do numero da conta origem.");
+		}
 	}
 
 }
