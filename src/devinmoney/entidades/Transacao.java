@@ -1,19 +1,26 @@
 package devinmoney.entidades;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Transacao {
 
 	private Conta contaOrigem;
 	private Conta contaDestino;
 	private Double valor;
-	private LocalDateTime data;
+	private String data;
 
-	public Transacao(Conta contaOrigem, Conta contaDestino, Double valor, LocalDateTime data) {
+	public Transacao(Conta contaOrigem, Conta contaDestino, Double valor) {
 		this.contaOrigem = contaOrigem;
 		this.contaDestino = contaDestino;
 		this.valor = valor;
-		this.data = data;
+		this.data = getDataFormatada();
+	}
+
+	private String getDataFormatada() {
+		LocalDateTime agora = LocalDateTime.now();
+		DateTimeFormatter formatador = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+		return agora.format(formatador);
 	}
 
 	public Conta getContaOrigem() {
@@ -40,12 +47,18 @@ public class Transacao {
 		this.valor = valor;
 	}
 
-	public LocalDateTime getData() {
+	public String getData() {
 		return data;
 	}
 
-	public void setData(LocalDateTime data) {
+	public void setData(String data) {
 		this.data = data;
+	}
+
+	@Override
+	public String toString() {
+		return "Transação: Conta origem: " + contaOrigem.conta + ", Conta destino: " + contaDestino.conta + ", Valor: "
+				+ valor + ", Data e hora: " + data;
 	}
 
 }
