@@ -3,7 +3,9 @@ package devinmoney;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
@@ -22,6 +24,7 @@ public class SistemaBancario {
 	private List<Transacao> transacoes = new ArrayList<Transacao>();
 	private Integer numeroConta = 1;
 	private LocalDate dataLocal;
+	private Scanner scanner;
 
 	public SistemaBancario() {
 		this.dataLocal = LocalDate.now();
@@ -95,19 +98,10 @@ public class SistemaBancario {
 			contas.add(new ContaInvestimento(contaLogada.getNome(), contaLogada.getCpf(), contaLogada.getRendaMensal(),
 					numeroConta, contaLogada.getAgencia(), 0.00, contaLogada.getSenha(), tipoInvestimento));
 			numeroConta += 1;
+			System.out.println("Conta de investimento criada com sucesso!");
 		} catch (EntradaIncorretaException e) {
 			System.out.println(e.getMessage());
 		}
-	}
-
-	public Conta fazerLogin(Integer numeroConta, Integer senha) {
-		Conta contaLogada = null;
-		for (Conta conta : contas) {
-			if (conta.getConta() == numeroConta && conta.getSenha() == senha) {
-				contaLogada = conta;
-			}
-		}
-		return contaLogada;
 	}
 
 	private Conta obterContaPorNumeroConta(Integer contaDestino) {
@@ -131,7 +125,7 @@ public class SistemaBancario {
 		return dia == DayOfWeek.SATURDAY || dia == DayOfWeek.SUNDAY;
 	}
 
-	// Relatórios:
+	// inicio relatórios:
 	public void listarTodasContas() {
 		for (Conta conta : contas) {
 			System.out.println(conta);
@@ -195,6 +189,200 @@ public class SistemaBancario {
 				System.out.println(contaCliente.getExtrato());
 			}
 		}
+	}// fim relatorios
+
+	public Optional<Conta> fazerLogin() {
+		boolean leuCorretamente = false;
+		Integer numeroConta = null;
+		Integer senhaConta = null;
+
+		while (!leuCorretamente) {
+			scanner = new Scanner(System.in);
+			try {
+				System.out.println("Favor informar abaixo o número de sua conta:");
+				numeroConta = scanner.nextInt();
+
+				System.out.println("Favor informar abaixo a senha de sua conta:");
+				senhaConta = scanner.nextInt();
+
+				for (Conta conta : contas) {
+					if (conta.getConta() == numeroConta && conta.getSenha() == senhaConta) {
+						return Optional.of(conta);
+					}
+				}
+				leuCorretamente = true;
+			} catch (InputMismatchException e) {
+				System.out.println("Entrada incorreta, favor informar um número inteiro!");
+			}
+		}
+		return Optional.empty();
+	}
+
+	public void opcaoDepositar(Conta contaLogada) {
+		boolean entradaCorreta = false;
+		Double valorDeposito = null;
+		while (!entradaCorreta) {
+			scanner = new Scanner(System.in);
+			try {
+				System.out.println("Favor informar o valor abaixo:");
+				valorDeposito = scanner.nextDouble();
+				entradaCorreta = true;
+			} catch (InputMismatchException e) {
+				System.out.println("Valor inválido, tente novamente!");
+			}
+		}
+
+		if (LocalDate.now().equals(getDataLocal())) {
+			contaLogada.depositar(valorDeposito);
+		} else {
+			System.out.println("Data anterior a data hoje!");
+		}
+
+	}
+
+	public void opcaoSacar(Conta contaLogada) {
+		boolean entradaCorreta = false;
+		Double valorSaque = null;
+		while (!entradaCorreta) {
+			scanner = new Scanner(System.in);
+			try {
+				System.out.println("Favor informar o valor abaixo:");
+				valorSaque = scanner.nextDouble();
+				entradaCorreta = true;
+			} catch (InputMismatchException e) {
+				System.out.println("Valor inválido, tente novamente!");
+			}
+
+		}
+		if (LocalDate.now().equals(getDataLocal())) {
+			contaLogada.sacar(valorSaque);
+		} else {
+			System.out.println("Data anterior a data hoje!");
+		}
+	}
+
+	public void opcaoTransferir(Conta contaLogada) {
+		Double valorTransferencia = null;
+		Integer numeroContaDestino = null;
+		boolean entradaCorreta = false;
+		while (!entradaCorreta) {
+			scanner = new Scanner(System.in);
+			try {
+				System.out.println("Favor informar o valor abaixo:");
+				valorTransferencia = scanner.nextDouble();
+				System.out.println("Favor informar o numero da conta destino abaixo:");
+				numeroContaDestino = scanner.nextInt();
+				entradaCorreta = true;
+			} catch (InputMismatchException e) {
+				System.out.println("Valor inválido, tente novamente!");
+			}
+		}
+
+		if (LocalDate.now().equals(getDataLocal())) {
+			if (verificarSeFinalDeSemana(LocalDate.now()) || LocalDate.now().isAfter(getDataLocal())) {
+				System.out.println("Desculpe, não é possível realizar a operação em finais de semana.");
+			} else {
+				transferir(contaLogada, numeroContaDestino, valorTransferencia);
+			}
+		} else {
+			System.out.println("Data anterior a data hoje!");
+		}
+	}
+
+	public void opcaoSimularRendimentoPoupanca(Conta contaLogada) {
+		boolean entradaCorreta = false;
+		Integer periodo = null;
+		Double taxa = null;
+		while (!entradaCorreta) {
+			scanner = new Scanner(System.in);
+			try {
+				System.out.println("Favor informar a qtde de meses abaixo:");
+				periodo = scanner.nextInt();
+				System.out.println("Favor informar a taxa anual abaixo:");
+				taxa = scanner.nextDouble();
+				entradaCorreta = true;
+			} catch (InputMismatchException e) {
+				System.out.println("Valor inválido, tente novamente!");
+			}
+
+		}
+
+		System.out.println("Montante ao final de " + periodo + " meses: R$"
+				+ ((ContaPoupanca) contaLogada).simularRendimento(periodo, taxa) + ".\n");
+	}
+
+	public void opcaoCriarContaInvestimento(Conta contaLogada) {
+		Integer opcaoInvestimento = null;
+		System.out.println(
+				"Escolha umas das opções de investimento abaixo:\n" + "1- CDB " + TipoInvestimento.CDB.getDescricao()
+						+ ", 2- LCI " + TipoInvestimento.LCI.getDescricao() + ", ou 3- Cancelar operação:");
+
+		boolean entradaCorreta = false;
+		while (!entradaCorreta) {
+			scanner = new Scanner(System.in);
+			try {
+				opcaoInvestimento = scanner.nextInt();
+				entradaCorreta = true;
+			} catch (InputMismatchException e) {
+				System.out.println("Opção inválida,\nEscolha umas das opções de investimento abaixo:\n" + "1- CDB "
+						+ TipoInvestimento.CDB.getDescricao() + ", 2- LCI " + TipoInvestimento.LCI.getDescricao()
+						+ ", ou 3- Cancelar operação:");
+			}
+		}
+
+		switch (opcaoInvestimento) {
+		case 1:
+			criarContaInvestimento(contaLogada, TipoInvestimento.CDB);
+			break;
+		case 2:
+			criarContaInvestimento(contaLogada, TipoInvestimento.LCI);
+			break;
+		case 3:
+			System.out.println("Operação cancelada.");
+			break;
+		}
+	}
+
+	public void opcaoAlterarDadosCadastrais(Conta contaLogada) {
+		boolean entradaCorreta = false;
+		while (!entradaCorreta) {
+			scanner = new Scanner(System.in);
+			try {
+				System.out.println("Favor informar novo nome abaixo:");
+				String novoNome = scanner.next();
+				System.out.println("Favor informar novo valor de renda mensal abaixo:");
+				Double novaRenda = scanner.nextDouble();
+				System.out.println("Favor informar nova senha abaixo:");
+				Integer novaSenha = scanner.nextInt();
+				contaLogada.alterarDadosCadastrais(novoNome, novaRenda, novaSenha);
+				entradaCorreta = true;
+			} catch (InputMismatchException e) {
+				System.out.println("Valor inválido, tente novamente!");
+			}
+		}
+	}
+
+	public void opcaoSimularInvestimento(Conta contaLogada) {
+		Integer periodo = null;
+		boolean entradaCorreta = false;
+		while (!entradaCorreta) {
+			scanner = new Scanner(System.in);
+			try {
+				System.out.println("Favor informar a qtde de meses abaixo:");
+				periodo = scanner.nextInt();
+				entradaCorreta = true;
+			} catch (InputMismatchException e) {
+				System.out.println("Valor inválido, tente novamente!");
+			}
+		}
+
+		System.out.println("Montante ao final de " + periodo + " meses: R$"
+				+ ((ContaInvestimento) contaLogada).simularRendimento(periodo) + ".\n");
+	}
+
+	public void opcaoSair() {
+		System.out.println("Você saiu.");
+		System.exit(0);
 	}
 
 	public static void main(String[] args) {
@@ -205,7 +393,7 @@ public class SistemaBancario {
 		// numero conta = 1 / senha: 123;
 		sistemaBancario.criarContaCorrente("Pedro", "047.289.008-25", 7000.00, Agencia.FLORIANOPOLIS, 5000.00, 123);
 		// numero conta = 2 / senha: 123;
-		sistemaBancario.criarContaCorrente("Maria", "027.258.051-13", 2000.00, Agencia.SAO_JOSE, 200.00, 123);
+		sistemaBancario.criarContaCorrente("Maria", "027.258.051-13", 5000.00, Agencia.SAO_JOSE, -200.00, 123);
 		// numero conta = 3 / senha: 123;
 		sistemaBancario.criarContaPoupanca("João", "022.548.364-15", 3000.00, Agencia.SAO_JOSE, 3000.00, 123);
 		// numero conta = 4 / senha: 123;
@@ -215,279 +403,180 @@ public class SistemaBancario {
 		sistemaBancario.criarContaInvestimento("Felipe", "022.548.364-15", 10000.00, Agencia.FLORIANOPOLIS, 2000.00,
 				123, TipoInvestimento.LCI);
 
-		// Inicio do Menu Usuário
-		Scanner scanner = new Scanner(System.in);
-		System.out.println("Favor informar abaixo o número de sua conta:");
-		Integer numeroConta = scanner.nextInt();
+		boolean loginCorreto = false;
 
-		System.out.println("Favor informar abaixo a senha de sua conta:");
-		Integer senhaConta = scanner.nextInt();
+		while (!loginCorreto) {
 
-		Conta contaLogada = sistemaBancario.fazerLogin(numeroConta, senhaConta);
+			Scanner scanner = new Scanner(System.in);
+			// inicio do Menu Usuario
+			Optional<Conta> optionalConta;
 
-		Integer opcao;
+			optionalConta = sistemaBancario.fazerLogin();
 
-		if (contaLogada instanceof ContaPoupanca) {
+			if (optionalConta.isPresent()) {
+				Conta contaLogada = optionalConta.get();
+				Integer opcao = null;
 
-			System.out.println("\nOlá " + contaLogada.getNome() + "!\nO que você deseja fazer? Abaixo opções:\n"
-					+ "1- Depósito, 2- Saque, 3- Transferência, 4- Simular rendimento poupança, 5- Consultar extrato, 6- Criar conta de investimento, 7- Alterar dados cadastrais, 8- Sair do sistema");
+				if (contaLogada instanceof ContaPoupanca) {
+					loginCorreto = true;
+					System.out.println("\nOlá " + contaLogada.getNome() + "!\nO que você deseja fazer? Abaixo opções:\n"
+							+ "1- Depósito, 2- Saque, 3- Transferência, 4- Simular rendimento poupança, 5- Consultar extrato, 6- Criar conta de investimento, 7- Alterar dados cadastrais, 8- Sair do sistema");
 
-			do {
-
-				opcao = scanner.nextInt();
-
-				switch (opcao) {
-
-				case 1:
-					System.out.println("Favor informar o valor abaixo:");
-					Double valorDeposito = scanner.nextDouble();
-					if (LocalDate.now().equals(sistemaBancario.getDataLocal())) {
-						contaLogada.depositar(valorDeposito);
-					} else {
-						System.out.println("Data anterior a data hoje!");
-					}
-					break;
-				case 2:
-					System.out.println("Favor informar o valor abaixo:");
-					Double valorSaque = scanner.nextDouble();
-					if (LocalDate.now().equals(sistemaBancario.getDataLocal())) {
-						contaLogada.sacar(valorSaque);
-					} else {
-						System.out.println("Data anterior a data hoje!");
-					}
-					break;
-				case 3:
-					System.out.println("Favor informar o valor abaixo:");
-					Double valorTransferencia = scanner.nextDouble();
-					System.out.println("Favor informar o numero da conta destino abaixo:");
-					Integer numeroContaDestino = scanner.nextInt();
-					if (LocalDate.now().equals(sistemaBancario.getDataLocal())
-							|| LocalDate.now().isAfter(sistemaBancario.getDataLocal())) {
-						if (sistemaBancario.verificarSeFinalDeSemana(LocalDate.now())) {
-							System.out.println("Desculpe, não é possível realizar a operação em finais de semana.");
-						} else {
-							sistemaBancario.transferir(contaLogada, numeroContaDestino, valorTransferencia);
+					do {
+						boolean leuCorretamente = false;
+						while (!leuCorretamente) {
+							scanner = new Scanner(System.in);
+							try {
+								opcao = scanner.nextInt();
+								leuCorretamente = true;
+							} catch (InputMismatchException e) {
+								System.out.println(
+										"Entrada incorreta, favor informar um número inteiro dentre as opções abaixo:\n"
+												+ "1- Depósito, 2- Saque, 3- Transferência, 4- Simular rendimento poupança, 5- Consultar extrato, 6- Criar conta de investimento, 7- Alterar dados cadastrais, 8- Sair do sistema");
+							}
 						}
-					} else {
-						System.out.println("Data anterior a data hoje!");
-					}
 
-					break;
-				case 4:
-					System.out.println("Favor informar a qtde de meses abaixo:");
-					Integer periodo = scanner.nextInt();
-					System.out.println("Favor informar a taxa anual abaixo:");
-					Double taxa = scanner.nextDouble();
-					System.out.println("Montante ao final de " + periodo + " meses: R$"
-							+ ((ContaPoupanca) contaLogada).simularRendimento(periodo, taxa) + ".\n");
-					break;
-				case 5:
-					System.out.println(contaLogada.getExtrato());
-					break;
-				case 6:
-					Integer opcaoInvestimento;
-					System.out.println("Escolha umas das opções de investimento abaixo:\n" + "1- CDB "
-							+ TipoInvestimento.CDB.getDescricao() + ", 2- LCI " + TipoInvestimento.LCI.getDescricao()
-							+ ", ou 3- Cancelar operação:");
-					opcaoInvestimento = scanner.nextInt();
-					switch (opcaoInvestimento) {
-					case 1:
-						sistemaBancario.criarContaInvestimento(contaLogada, TipoInvestimento.CDB);
-						break;
-					case 2:
-						sistemaBancario.criarContaInvestimento(contaLogada, TipoInvestimento.LCI);
-						break;
-					case 3:
-						System.out.println("Operação cancelada.");
-						break;
-					}
-					break;
-				case 7:
-					System.out.println("Favor informar novo nome abaixo:");
-					String novoNome = scanner.next();
-					System.out.println("Favor informar novo valor de renda mensal abaixo:");
-					Double novaRenda = scanner.nextDouble();
-					System.out.println("Favor informar nova senha abaixo:");
-					Integer novaSenha = scanner.nextInt();
-					contaLogada.alterarDadosCadastrais(novoNome, novaRenda, novaSenha);
-					break;
-				case 8:
-					System.out.println("Você saiu.");
-					System.exit(0);
-					break;
-				}
-				System.out.println("\nO que deseja realizar a seguir? Abaixo opções:\n"
-						+ "1- Depósito, 2- Saque, 3- Transferência, 4- Simular rendimento poupança, 5- Consultar extrato, 6- Criar conta de investimento, 7- Alterar dados cadastrais, 8- Sair do sistema");
+						switch (opcao) {
 
-			} while (opcao < 7);
-
-			scanner.close();
-
-		} else if (contaLogada instanceof ContaCorrente) {
-
-			System.out.println("\nOlá " + contaLogada.getNome() + "!\nO que você deseja fazer? Abaixo opções:\n"
-					+ "1- Depósito, 2- Saque, 3- Transferência, 4- Criar conta de investimento, 5- Consultar extrato, 6- Alterar dados cadastrais, 7- Sair do sistema");
-
-			do {
-
-				opcao = scanner.nextInt();
-
-				switch (opcao) {
-
-				case 1:
-					System.out.println("Favor informar o valor abaixo:");
-					Double valorDeposito = scanner.nextDouble();
-					if (LocalDate.now().equals(sistemaBancario.getDataLocal())) {
-						contaLogada.depositar(valorDeposito);
-					} else {
-						System.out.println("Data anterior a data hoje!");
-					}
-					break;
-
-				case 2:
-					System.out.println("Favor informar o valor abaixo:");
-					Double valorSaque = scanner.nextDouble();
-					if (LocalDate.now().equals(sistemaBancario.getDataLocal())) {
-						contaLogada.sacar(valorSaque);
-					} else {
-						System.out.println("Data anterior a data hoje!");
-					}
-					break;
-				case 3:
-					System.out.println("Favor informar o valor abaixo:");
-					Double valorTransferencia = scanner.nextDouble();
-					System.out.println("Favor informar o numero da conta destino abaixo:");
-					Integer numeroContaDestino = scanner.nextInt();
-					if (LocalDate.now().equals(sistemaBancario.getDataLocal())
-							|| LocalDate.now().isAfter(sistemaBancario.getDataLocal())) {
-						if (sistemaBancario.verificarSeFinalDeSemana(LocalDate.now())) {
-							System.out.println("Desculpe, não é possível realizar a operação em finais de semana.");
-						} else {
-							sistemaBancario.transferir(contaLogada, numeroContaDestino, valorTransferencia);
+						case 1:
+							sistemaBancario.opcaoDepositar(contaLogada);
+							break;
+						case 2:
+							sistemaBancario.opcaoSacar(contaLogada);
+							break;
+						case 3:
+							sistemaBancario.opcaoTransferir(contaLogada);
+							break;
+						case 4:
+							sistemaBancario.opcaoSimularRendimentoPoupanca(contaLogada);
+							break;
+						case 5:
+							System.out.println(contaLogada.getExtrato());
+							break;
+						case 6:
+							sistemaBancario.opcaoCriarContaInvestimento(contaLogada);
+							break;
+						case 7:
+							sistemaBancario.opcaoAlterarDadosCadastrais(contaLogada);
+							break;
+						case 8:
+							sistemaBancario.opcaoSair();
+							break;
 						}
-					} else {
-						System.out.println("Data anterior a data hoje!");
-					}
+						System.out.println("\nO que deseja realizar a seguir? Abaixo opções:\n"
+								+ "1- Depósito, 2- Saque, 3- Transferência, 4- Simular rendimento poupança, 5- Consultar extrato, 6- Criar conta de investimento, 7- Alterar dados cadastrais, 8- Sair do sistema");
 
-					break;
-				case 4:
-					Integer opcaoInvestimento;
-					System.out.println("Escolha umas das opções de investimento abaixo:\n" + "1- CDB "
-							+ TipoInvestimento.CDB.getDescricao() + ", 2- LCI " + TipoInvestimento.LCI.getDescricao()
-							+ ", ou 3- Cancelar operação:");
-					opcaoInvestimento = scanner.nextInt();
-					switch (opcaoInvestimento) {
-					case 1:
-						sistemaBancario.criarContaInvestimento(contaLogada, TipoInvestimento.CDB);
-						break;
-					case 2:
-						sistemaBancario.criarContaInvestimento(contaLogada, TipoInvestimento.LCI);
-						break;
-					case 3:
-						System.out.println("Operação cancelada.");
-						break;
-					}
-					break;
-				case 5:
-					System.out.println(contaLogada.getExtrato());
-					break;
-				case 6:
-					System.out.println("Favor informar novo nome abaixo:");
-					String novoNome = scanner.next();
-					System.out.println("Favor informar novo valor de renda mensal abaixo:");
-					Double novaRenda = scanner.nextDouble();
-					System.out.println("Favor informar nova senha abaixo:");
-					Integer novaSenha = scanner.nextInt();
-					contaLogada.alterarDadosCadastrais(novoNome, novaRenda, novaSenha);
-					break;
-				case 7:
-					System.out.println("Você saiu.");
-					System.exit(0);
-					break;
-				}
+					} while (opcao < 8);
 
-				System.out.println("\nO que deseja realizar a seguir? Abaixo opções:\n"
-						+ "1- Depósito, 2- Saque, 3- Transferência, 4- Criar conta de investimento, 5- Consultar extrato, 6- Alterar dados cadastrais, 7- Sair do sistema");
+					scanner.close();
 
-			} while (opcao < 6);
+				} else if (contaLogada instanceof ContaCorrente) {
+					loginCorreto = true;
+					System.out.println("\nOlá " + contaLogada.getNome() + "!\nO que você deseja fazer? Abaixo opções:\n"
+							+ "1- Depósito, 2- Saque, 3- Transferência, 4- Criar conta de investimento, 5- Consultar extrato, 6- Alterar dados cadastrais, 7- Sair do sistema");
 
-			scanner.close();
-		} else {
-
-			System.out.println("\nOlá " + contaLogada.getNome() + "!\nO que você deseja fazer? Abaixo opções:\n"
-					+ "1- Depósito, 2- Saque, 3- Transferência, 4- Simular investimento, 5- Consultar extrato, 6- Alterar dados cadastrais, 7- Sair do sistema");
-
-			do {
-
-				opcao = scanner.nextInt();
-
-				switch (opcao) {
-
-				case 1:
-					System.out.println("Favor informar o valor abaixo:");
-					Double valorDeposito = scanner.nextDouble();
-					if (LocalDate.now().equals(sistemaBancario.getDataLocal())) {
-						contaLogada.depositar(valorDeposito);
-					} else {
-						System.out.println("Data anterior a data hoje!");
-					}
-					break;
-				case 2:
-					System.out.println("Favor informar o valor abaixo:");
-					Double valorSaque = scanner.nextDouble();
-					if (LocalDate.now().equals(sistemaBancario.getDataLocal())) {
-						contaLogada.sacar(valorSaque);
-					} else {
-						System.out.println("Data anterior a data hoje!");
-					}
-					break;
-				case 3:
-					System.out.println("Favor informar o valor abaixo:");
-					Double valorTransferencia = scanner.nextDouble();
-					System.out.println("Favor informar o numero da conta destino abaixo:");
-					Integer numeroContaDestino = scanner.nextInt();
-					if (LocalDate.now().equals(sistemaBancario.getDataLocal())) {
-						if (sistemaBancario.verificarSeFinalDeSemana(LocalDate.now())
-								|| LocalDate.now().isAfter(sistemaBancario.getDataLocal())) {
-							System.out.println("Desculpe, não é possível realizar a operação em finais de semana.");
-						} else {
-							sistemaBancario.transferir(contaLogada, numeroContaDestino, valorTransferencia);
+					do {
+						boolean entradaCorreta = false;
+						while (!entradaCorreta) {
+							scanner = new Scanner(System.in);
+							try {
+								opcao = scanner.nextInt();
+								entradaCorreta = true;
+							} catch (InputMismatchException e) {
+								System.out.println(
+										"Entrada incorreta, favor informar um número inteiro dentre as opções abaixo:\n"
+												+ "1- Depósito, 2- Saque, 3- Transferência, 4- Criar conta de investimento, 5- Consultar extrato, 6- Alterar dados cadastrais, 7- Sair do sistema");
+							}
 						}
-					} else {
-						System.out.println("Data anterior a data hoje!");
-					}
 
-					break;
-				case 4:
-					System.out.println("Favor informar a qtde de meses abaixo:");
-					Integer periodo = scanner.nextInt();
-					System.out.println("Montante ao final de " + periodo + " meses: R$"
-							+ ((ContaInvestimento) contaLogada).simularRendimento(periodo) + ".\n");
-					break;
-				case 5:
-					System.out.println(contaLogada.getExtrato());
-					break;
-				case 6:
-					System.out.println("Favor informar novo nome abaixo:");
-					String novoNome = scanner.next();
-					System.out.println("Favor informar novo valor de renda mensal abaixo:");
-					Double novaRenda = scanner.nextDouble();
-					System.out.println("Favor informar nova senha abaixo:");
-					Integer novaSenha = scanner.nextInt();
-					contaLogada.alterarDadosCadastrais(novoNome, novaRenda, novaSenha);
+						switch (opcao) {
 
-					break;
-				case 7:
-					System.out.println("Você saiu.");
-					System.exit(0);
-					break;
-				}
+						case 1:
+							sistemaBancario.opcaoDepositar(contaLogada);
+							break;
 
-				System.out.println("\nO que deseja realizar a seguir? Abaixo opções:\n"
-						+ "1- Depósito, 2- Saque, 3- Transferência, 4- Simular investimento, 5- Consultar extrato, 6- Alterar dados cadastrais, 7- Sair do sistema");
+						case 2:
+							sistemaBancario.opcaoSacar(contaLogada);
+							break;
+						case 3:
+							sistemaBancario.opcaoTransferir(contaLogada);
+							break;
+						case 4:
+							sistemaBancario.opcaoCriarContaInvestimento(contaLogada);
+							break;
+						case 5:
+							System.out.println(contaLogada.getExtrato());
+							break;
+						case 6:
+							sistemaBancario.opcaoAlterarDadosCadastrais(contaLogada);
+							break;
+						case 7:
+							sistemaBancario.opcaoSair();
+							break;
+						}
 
-			} while (opcao < 6);
-		} // Fim do Menu do Usuário
+						System.out.println("\nO que deseja realizar a seguir? Abaixo opções:\n"
+								+ "1- Depósito, 2- Saque, 3- Transferência, 4- Criar conta de investimento, 5- Consultar extrato, 6- Alterar dados cadastrais, 7- Sair do sistema");
+
+					} while (opcao < 7);
+
+					scanner.close();
+				} else {
+					loginCorreto = true;
+					System.out.println("\nOlá " + contaLogada.getNome() + "!\nO que você deseja fazer? Abaixo opções:\n"
+							+ "1- Depósito, 2- Saque, 3- Transferência, 4- Simular investimento, 5- Consultar extrato, 6- Alterar dados cadastrais, 7- Sair do sistema");
+
+					do {
+
+						boolean entradaCorreta = false;
+						while (!entradaCorreta) {
+							scanner = new Scanner(System.in);
+							try {
+								opcao = scanner.nextInt();
+								entradaCorreta = true;
+							} catch (InputMismatchException e) {
+								System.out.println(
+										"Entrada incorreta, favor informar um número inteiro dentre as opções abaixo:\n"
+												+ "1- Depósito, 2- Saque, 3- Transferência, 4- Simular investimento, 5- Consultar extrato, 6- Alterar dados cadastrais, 7- Sair do sistema");
+							}
+						}
+
+						switch (opcao) {
+
+						case 1:
+							sistemaBancario.opcaoDepositar(contaLogada);
+							break;
+						case 2:
+							sistemaBancario.opcaoSacar(contaLogada);
+							break;
+						case 3:
+							sistemaBancario.opcaoTransferir(contaLogada);
+							break;
+						case 4:
+							sistemaBancario.opcaoSimularInvestimento(contaLogada);
+							break;
+						case 5:
+							System.out.println(contaLogada.getExtrato());
+							break;
+						case 6:
+							sistemaBancario.opcaoAlterarDadosCadastrais(contaLogada);
+							break;
+						case 7:
+							sistemaBancario.opcaoSair();
+							break;
+						}
+
+						System.out.println("\nO que deseja realizar a seguir? Abaixo opções:\n"
+								+ "1- Depósito, 2- Saque, 3- Transferência, 4- Simular investimento, 5- Consultar extrato, 6- Alterar dados cadastrais, 7- Sair do sistema");
+
+					} while (opcao < 7);
+
+				} // Fim do Menu do Usuário
+			} else {
+				System.out.println("Número da conta ou senha incorretos, favor tentar novamente!");
+			}
+
+		}
 
 	}
 }
